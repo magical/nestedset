@@ -1,0 +1,16 @@
+<!doctype html>
+<title>Reply to post</title>
+
+<link rel=stylesheet href="{{ url_for('static', filename='style.css') }}">
+
+<h1>Reply to post</h1>
+
+{% for post in parents %}
+<article class="post" id="p{{post.id}}">
+<div class="author">Posted by <span class="author">{{post.author|e}}.</span></div>
+<div class="body">{{post.body|e}}</div>
+</article>
+{% endfor %}
+
+{% include "form.html" %}
+

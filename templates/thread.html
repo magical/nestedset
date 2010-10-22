@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<link rel=stylesheet href="{{ url_for('static', filename='style.css') }}">
+
+<h1>Nested-set thread</h1>
+
+{% for post in posts %}
+<article class=post id="p{{post.id}}">
+<!-- left: {{ post.left }}, right: {{ post.right }} -->
+<div class=author>
+Posted by <span class=author>{{post.author|e}}</span>.
+</div>
+
+<div class=body>
+{{post.body|e}}
+</div>
+
+<div class="footer">
+<a href="reply/{{post.id}}">reply</a> | <a href="#p{{post.id}}">permalink</a>
+{% if post.parent_post_id is not none %}| <a href="#p{{post.parent_post_id}}">parent</a>{% endif %}
+</div>
+</article>
+{% endfor %}
+
+<hr>
+
+{% include "form.html" %}
+
+</html>
