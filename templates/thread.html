@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html>
 
+<title>Nested-set test</title>
 <link rel=stylesheet href="{{ url_for('static', filename='style.css') }}">
 
-<h1>Nested-set thread</h1>
+<h1>Nested-set test</h1>
 
-{% for post in posts %}
+{% macro display_posts(posts) -%}
+{% for post, children in posts %}
+<li>
 <article class=post id="p{{post.id}}">
 <!-- left: {{ post.left }}, right: {{ post.right }} -->
 <div class=author>
-Posted by <span class=author>{{post.author|e}}</span>.
+Posted by <span class=author>{{post.author|e}}</span> on
+<time datetime="{{post.post_time}}">{{post.post_time.strftime("%Y-%m-%d at %H:%M:%S")}}</time>.
 </div>
 
 <div class=body>
@@ -21,7 +25,19 @@ Posted by <span class=author>{{post.author|e}}</span>.
 {% if post.parent_post_id is not none %}| <a href="#p{{post.parent_post_id}}">parent</a>{% endif %}
 </div>
 </article>
+{%- if children %}
+
+<ol class=thread>
+{{ display_posts(children) }}
+</ol>
+{%- endif %}
+</li>
 {% endfor %}
+{%- endmacro %}
+
+<ol class=thread>
+{{ display_posts(posts) }}
+</ol>
 
 <hr>
 

@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 
 def connect_db():
-    return sqlite3.connect(app.config['DATABASE'])
+    return sqlite3.connect(app.config['DATABASE'], detect_types=sqlite3.PARSE_DECLTYPES)
 
 def query(*args, **kw):
     cur = g.db.execute(*args, **kw)
@@ -35,13 +35,13 @@ def create_post(body, author=None, parent_id=None):
         parent = query_one('select * from posts where id=?', [parent_id])
         left = parent['right']
     else:
-        posts = query('select * from posts where left = (select max(left) as left from posts)')
-        if not posts:
+        rows = g.db.execute('select max(right) from posts;').fetchall()
+        if not rows:
             left = 1
         else:
-            assert len(posts == 1)
-            post = posts[0]
-            left = post['right'] + 1
+            assert len(rows) == 1
+            max_right = rows[0][0]
+            left = max_right + 1
 
     right = left + 1
 
@@ -55,15 +55,47 @@ def create_post(body, author=None, parent_id=None):
 
     return post_id
 
+def set_to_tree(nodes):
+    """Transform a list of nested-set nodes into a tree.
+
+    Returns a list of (node, children) pairs."""
+
+    tree = []
+    thing = Thing(nodes)
+    while thing.cur:
+        node = thing.cur
+        thing.next()
+        tree.append(_set_to_tree(thing, node))
+
+    return tree
+
+def _set_to_tree(thing, self):
+    children = []
+    while thing.cur and thing.cur['right'] < self['right']:
+        node = thing.cur
+        thing.next()
+        children.append(_set_to_tree(thing, node))
+    return self, children
+
+class Thing:
+    def __init__(self, seq):
+        self.it = iter(seq)
+        self.next()
+
+    def next(self):
+        try:
+            self.cur = self.it.next()
+        except StopIteration:
+            self.cur = None
 
 @app.route('/', methods=('GET', 'POST'))
 def thread():
     if request.method == 'GET':
-        posts = query('select * from posts');
+        posts = set_to_tree(query('select * from posts order by left'));
         return render_template('thread.html', posts=posts)
     elif request.method == 'POST':
-        body = request.form['body'].decode('utf-8')
-        author = request.form['author'].decode('utf-8')
+        body = request.form['body']
+        author = request.form['author']
 
         post_id = create_post(body, author)
         return redirect("/#p{0}".format(post_id))
@@ -77,8 +109,8 @@ def reply(post_id):
     elif request.method == 'POST':
         parent_id = post_id
 
-        body = request.form['body'].decode('utf-8')
-        author = request.form['author'].decode('utf-8')
+        body = request.form['body']
+        author = request.form['author']
             
         post_id = create_post(body, author, parent_id=parent_id)
 
