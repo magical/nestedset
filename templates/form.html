@@ -1,5 +1,8 @@
-<form method="post">
+<form method="POST" id="post">
+{% if error %}
+<div class=error>{{error}}</div>
+{% endif %}
 <label>Name: <input name="author"></label><br>
 <textarea name=body></textarea><br>
-<input type="submit" value="Post"><br>
+<input type="submit" value="Post">
 </form>

@@ -6,37 +6,44 @@
 
 <h1>Nested-set test</h1>
 
-{% macro display_posts(posts) -%}
+{%- macro display_post_tree(posts) -%}
 {% for post, children in posts %}
 <li>
+{{ display_post(post) }}
+{%- if children %}
+
+<ol class=thread>
+{{ display_post_tree(children) }}
+</ol>
+{%- endif %}
+</li>
+{% endfor %}
+{%- endmacro -%}
+
+{%- macro display_post(post, footer=True) -%}
 <article class=post id="p{{post.id}}">
 <!-- left: {{ post.left }}, right: {{ post.right }} -->
-<div class=author>
-Posted by <span class=author>{{post.author|e}}</span> on
-<time datetime="{{post.post_time}}">{{post.post_time.strftime("%Y-%m-%d at %H:%M:%S")}}</time>.
+<div class=header>
+Posted 
+{% if post.author %}by <span class=author>{{post.author|e}}</span>{% endif %}
+on <time datetime="{{post.post_time}}">{{post.post_time.strftime("%Y-%m-%d at %H:%M:%S")}}</time>.
 </div>
 
 <div class=body>
 {{post.body|e}}
 </div>
+{% if footer %}
 
 <div class="footer">
-<a href="reply/{{post.id}}">reply</a> | <a href="#p{{post.id}}">permalink</a>
+<a href="reply/{{post.id}}#post">reply</a> | <a href="#p{{post.id}}">permalink</a>
 {% if post.parent_post_id is not none %}| <a href="#p{{post.parent_post_id}}">parent</a>{% endif %}
 </div>
+{% endif %}
 </article>
-{%- if children %}
+{%- endmacro -%}
 
 <ol class=thread>
-{{ display_posts(children) }}
-</ol>
-{%- endif %}
-</li>
-{% endfor %}
-{%- endmacro %}
-
-<ol class=thread>
-{{ display_posts(posts) }}
+{{ display_post_tree(posts) }}
 </ol>
 
 <hr>

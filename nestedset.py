@@ -2,10 +2,10 @@ import sqlite3
 from datetime import datetime
 from operator import itemgetter
 
-from flask import Flask, request, session, url_for, abort, render_template, flash, g, redirect
+from flask import Flask, request, url_for, abort, render_template, flash, g, redirect
 
 DATABASE = 'db.sqlite'
-DEBUG = True
+#DEBUG = True
 SECRET_KEY = 'uy+4rVq/YjkYPV5AlyMU97A0qUiECCALt11c6LJBgGI='
 
 app = Flask(__name__)
@@ -94,8 +94,12 @@ def thread():
         posts = set_to_tree(query('select * from posts order by left'));
         return render_template('thread.html', posts=posts)
     elif request.method == 'POST':
-        body = request.form['body']
-        author = request.form['author']
+        body = request.form['body'].strip()
+        author = request.form['author'].strip() or None
+
+        if not body:
+            posts = set_to_tree(query('select * from posts order by left'))
+            return render_template('thread.html', posts=posts, error='You must enter a post body.')
 
         post_id = create_post(body, author)
         return redirect("/#p{0}".format(post_id))
@@ -109,8 +113,15 @@ def reply(post_id):
     elif request.method == 'POST':
         parent_id = post_id
 
-        body = request.form['body']
-        author = request.form['author']
+        body = request.form['body'].strip()
+        author = request.form['author'].strip() or None
+
+        if not body:
+            error = 'You must enter a post body'
+
+            post = query_one('select * from posts where id=?', [post_id])
+            parents = query('select * from posts where left <= ? order by left', [post['left']])
+            return render_template('reply.html', parents=parents, error=error)
             
         post_id = create_post(body, author, parent_id=parent_id)
 
@@ -127,6 +138,6 @@ def _close_db(response):
     return response
 
 if __name__ == '__main__':
-    app.run(port=5009)
+    app.run("0.0.0.0", port=5009)
     
 

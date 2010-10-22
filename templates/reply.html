@@ -5,11 +5,10 @@
 
 <h1>Reply to post</h1>
 
+{%- from "thread.html" import display_post -%}
+
 {% for post in parents %}
-<article class="post" id="p{{post.id}}">
-<div class="author">Posted by <span class="author">{{post.author|e}}.</span></div>
-<div class="body">{{post.body|e}}</div>
-</article>
+{{ display_post(post, footer=False) }}
 {% endfor %}
 
 {% include "form.html" %}
