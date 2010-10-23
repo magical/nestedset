@@ -5,7 +5,7 @@ from operator import itemgetter
 from flask import Flask, request, url_for, abort, render_template, flash, g, redirect
 
 DATABASE = 'db.sqlite'
-#DEBUG = True
+DEBUG = False
 SECRET_KEY = 'uy+4rVq/YjkYPV5AlyMU97A0qUiECCALt11c6LJBgGI='
 
 app = Flask(__name__)
@@ -157,7 +157,10 @@ def _close_db(response):
     return response
 
 if __name__ == '__main__':
-    app.run("0.0.0.0", port=5009)
-    #app.run(port=5009)
-    
+    import sys
+    if 1 < len(sys.argv) and sys.argv[1] == 'debug':
+        app.config['DEBUG'] = True
+        app.run(port=5009)
+    else:
+        app.run("0.0.0.0", port=5009)
 
