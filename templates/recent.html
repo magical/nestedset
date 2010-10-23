@@ -15,7 +15,7 @@
 | {% if more %}<a href="?page={{page-1}}">next</a>{%else%}next{%endif%}
 </p>
 
-{% from "thread.html" import display_post %}
+{% from "util.html" import display_post -%}
 {% for post in posts %}
-{{ display_post(post) }}
+{{ display_post(post, abs_parent=True) }}
 {% endfor %}

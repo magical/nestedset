@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<title>Subthread</title>
+<link rel=stylesheet href="{{ url_for('static', filename='style.css') }}">
+
+<h1>Subthread</h1>
+
+<p>
+<a href="/recent/{{post.id}}">[Recent posts]</a>
+</p>
+
+{% from "util.html" import display_post_tree, display_post %}
+<ol class=thread>
+{% for post in parents %}
+{{ display_post(post) }}
+{% endfor %}
+{{ display_post_tree(posts) }}
+</ol>
+
+
+</html>

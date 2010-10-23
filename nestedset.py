@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 from operator import itemgetter
 
-from flask import Flask, request, url_for, abort, render_template, flash, g, redirect
+from flask import Flask, request, abort, render_template, g, redirect
 
 DATABASE = 'db.sqlite'
 DEBUG = False
@@ -137,6 +137,8 @@ PAGE_SIZE = 50
 @app.route("/recent")
 def recent():
     page = request.args.get('page', 1, type=int)
+    if page < 1:
+        abort(404)
     skip = 50 * (page - 1)
     posts = query('select * from posts order by post_time desc limit ? offset ?',
                   [PAGE_SIZE, skip])
@@ -146,6 +148,35 @@ def recent():
         abort(404)
 
     return render_template('recent.html', posts=posts, page=page, more=more)
+
+@app.route("/recent/<int:post_id>")
+def recent_subthread(post_id):
+    post = query_one('select * from posts where id = ?', [post_id])
+
+    page = request.args.get('page', 1, type=int)
+    if page < 1:
+        abort(404)
+    skip = 50 * (page - 1)
+
+    posts = query('select * from posts where ? <= left and right <= ? order by post_time desc limit ? offset ?',
+                  [post['left'], post['right'], PAGE_SIZE, skip])
+    if not posts:
+        abort(404)
+
+    count = query_one('select count(*) from posts where ? <= left and right <= ?',
+                      [post['left'], post['right']])
+    more = skip + PAGE_SIZE < count
+
+    return render_template('recent.html', posts=posts, page=page, more=more)
+
+
+@app.route("/subthread/<int:post_id>")
+def subthread(post_id):
+    post = query_one('select * from posts where id = ?', [post_id])
+    parents = query('select * from posts where left < ? and ? < right order by left', [post['left'], post['right']])
+    posts = query('select * from posts where ? <= left and right <= ? order by left', [post['left'], post['right']])
+    posts = set_to_tree(posts)
+    return render_template('subthread.html', parents=parents, posts=posts, post=post)
 
 @app.before_request
 def _open_db():

@@ -5,7 +5,7 @@
 
 <h1>Reply to post</h1>
 
-{%- from "thread.html" import display_post -%}
+{% from "util.html" import display_post -%}
 
 {% for post in parents %}
 {{ display_post(post, footer=False) }}
