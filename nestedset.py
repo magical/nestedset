@@ -58,35 +58,40 @@ def create_post(body, author=None, parent_id=None):
 def set_to_tree(nodes):
     """Transform a list of nested-set nodes into a tree.
 
+    Assumes the nodes are already sorted by 'left'.
     Returns a list of (node, children) pairs."""
 
-    tree = []
     thing = Thing(nodes)
-    while thing.cur:
-        node = thing.cur
-        thing.next()
-        tree.append(_set_to_tree(thing, node))
-
-    return tree
+    trees = []
+    while thing.next:
+        node = thing.advance()
+        trees.append(_set_to_tree(thing, node))
+    return trees
 
 def _set_to_tree(thing, self):
     children = []
-    while thing.cur and thing.cur['right'] < self['right']:
-        node = thing.cur
-        thing.next()
+    while thing.next and thing.next['right'] < self['right']:
+        node = thing.advance()
         children.append(_set_to_tree(thing, node))
     return self, children
 
 class Thing:
+    '''This is sort of a wrapper around an iterator with lookahead(1).
+    The next element is available at thing.next, and thing.advance() returns
+    thing.next and advances the iterator (setting thing.next to the next 
+    element). If there are no more elements, thing.next is set to None.
+    '''
     def __init__(self, seq):
         self.it = iter(seq)
         self.next()
 
-    def next(self):
+    def advance(self):
+        node = self.next
         try:
-            self.cur = self.it.next()
+            self.next = self.it.next()
         except StopIteration:
-            self.cur = None
+            self.next = None
+        return node
 
 @app.route('/', methods=('GET', 'POST'))
 def thread():
