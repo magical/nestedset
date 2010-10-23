@@ -1,0 +1,21 @@
+<!doctype html>
+
+<title>Recent posts</title>
+<link rel=stylesheet href="/static/style.css">
+{% if 1 < page -%}
+<link rel="prev" href="?page={{page-1}}">
+{%- endif %}
+{% if more -%}
+<link rel="next" href="?page={{page+1}}">
+{%- endif %}
+<h1>Recent posts</h1>
+
+<p>{% if 1 < page %}<a href="?page={{page-1}}">prev</a>{%else%}prev{%endif%}
+| page <a href="?page={{page}}">{{page}}</a>
+| {% if more %}<a href="?page={{page-1}}">next</a>{%else%}next{%endif%}
+</p>
+
+{% from "thread.html" import display_post %}
+{% for post in posts %}
+{{ display_post(post) }}
+{% endfor %}

@@ -108,7 +108,7 @@ def thread():
 def reply(post_id):
     if request.method == 'GET':
         post = query_one('select * from posts where id=?', [post_id])
-        parents = query('select * from posts where left <= ? order by left', [post['left']])
+        parents = query('select * from posts where left <= ? and ? <= right order by left', [post['left'], post['right']])
         return render_template('reply.html', parents=parents)
     elif request.method == 'POST':
         parent_id = post_id
@@ -120,13 +120,27 @@ def reply(post_id):
             error = 'You must enter a post body'
 
             post = query_one('select * from posts where id=?', [post_id])
-            parents = query('select * from posts where left <= ? order by left', [post['left']])
+            parents = query('select * from posts where left <= ? and ? <= right order by left', [post['left'], post['right']])
             return render_template('reply.html', parents=parents, error=error)
             
         post_id = create_post(body, author, parent_id=parent_id)
 
         return redirect("/#p{0}".format(post_id))
 
+PAGE_SIZE = 50
+
+@app.route("/recent")
+def recent():
+    page = request.args.get('page', 1, type=int)
+    skip = 50 * (page - 1)
+    posts = query('select * from posts order by post_time desc limit ? offset ?',
+                  [PAGE_SIZE, skip])
+    count = query_one('select count(*) as "count" from posts')['count']
+    more = skip + PAGE_SIZE < count
+    if not posts:
+        abort(404)
+
+    return render_template('recent.html', posts=posts, page=page, more=more)
 
 @app.before_request
 def _open_db():
@@ -139,5 +153,6 @@ def _close_db(response):
 
 if __name__ == '__main__':
     app.run("0.0.0.0", port=5009)
+    #app.run(port=5009)
     
 

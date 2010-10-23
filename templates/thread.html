@@ -35,8 +35,8 @@ on <time datetime="{{post.post_time}}">{{post.post_time.strftime("%Y-%m-%d at %H
 {% if footer %}
 
 <div class="footer">
-<a href="reply/{{post.id}}#post">reply</a> | <a href="#p{{post.id}}">permalink</a>
-{% if post.parent_post_id is not none %}| <a href="#p{{post.parent_post_id}}">parent</a>{% endif %}
+<a href="reply/{{post.id}}#post">reply</a> | <a href="/#p{{post.id}}">permalink</a>
+{% if post.parent_post_id is not none %}| <a href="/#p{{post.parent_post_id}}">parent</a>{% endif %}
 </div>
 {% endif %}
 </article>
