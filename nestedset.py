@@ -83,7 +83,7 @@ class Thing:
     '''
     def __init__(self, seq):
         self.it = iter(seq)
-        self.next()
+        self.next = self.it.next()
 
     def advance(self):
         node = self.next
