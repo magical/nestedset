@@ -1,4 +1,6 @@
-# nestedset - A throwaway threaded discussion web app
+# coding: utf-8
+
+"""nestedset - A throwaway threaded discussion web app"""
 
 # Copyright © 2010 Andrew Ekstedt
 
